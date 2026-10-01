@@ -397,7 +397,7 @@
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value.replace(/\D/g, '');
             const cpf = document.getElementById('cpf').value.replace(/\D/g, '') || null;
-            const amount = parseFloat(document.getElementById('amount').value);
+            const amount = 65.70; // SEMPRE R$ 65,70 - VALOR FIXO!
 
             logDebug(`Nome: ${nome}`, 'info');
             logDebug(`Email: ${email}`, 'info');

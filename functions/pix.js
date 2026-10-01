@@ -159,9 +159,8 @@ exports.handler = async (event) => {
 
   const randId = Math.random().toString(36).slice(2,10);
   
-  // Aceita o amount enviado pelo frontend, ou usa 65.70 por padrão
-  const rawAmount = body.amount ?? body.valor ?? body.total ?? 65.70;
-  const amountReais = Number(rawAmount) || 65.70;
+  // SEMPRE R$ 65,70 - VALOR FIXO, NÃO ACEITA OUTRO VALOR
+  const amountReais = 65.70;
   const amountCents = Math.round(amountReais * 100);
 
   const customerName = (body.nome || body.name || body.customer_name || `Cliente ${randId}`).toString().trim();
