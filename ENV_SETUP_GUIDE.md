@@ -10,22 +10,22 @@ Você precisa configurar as seguintes variáveis de ambiente no Netlify:
 
 ### 1. **PINGUPAG_API_KEY**
 - **Tipo**: Secret (sensível)
-- **Valor**: `pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384`
+- **Valor**: `pingupag_sk_YOUR_KEY_HERE` (configure no Netlify)
 - **Descrição**: Chave de autenticação da API Pingupag
 
 ### 2. **NEXT_PUBLIC_SUPABASE_URL**
 - **Tipo**: Secret (sensível)
-- **Valor**: `https://ldyhodwdhavrgyooukpi.supabase.co/`
+- **Valor**: `https://YOUR_PROJECT.supabase.co/` (configure no Netlify)
 - **Descrição**: URL do projeto Supabase
 
 ### 3. **SUPABASE_SERVICE_ROLE_KEY**
 - **Tipo**: Secret (sensível)
-- **Valor**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+- **Valor**: `YOUR_SERVICE_KEY_HERE` (configure no Netlify)
 - **Descrição**: Chave de serviço do Supabase
 
 ### 4. **UTMIFY_TOKEN** (Opcional)
 - **Tipo**: Secret (sensível)
-- **Valor**: `lzASZob4ldSJJc3jT1LILy9alPxWJgpnPhCh`
+- **Valor**: `YOUR_TOKEN_HERE` (configure no Netlify)
 - **Descrição**: Token de integração com UTMify
 
 ## 🚀 Como Configurar no Netlify
@@ -46,10 +46,10 @@ Você precisa configurar as seguintes variáveis de ambiente no Netlify:
 
 ```bash
 # Crie um arquivo .env na raiz do projeto
-PINGUPAG_API_KEY=pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384
-NEXT_PUBLIC_SUPABASE_URL=https://ldyhodwdhavrgyooukpi.supabase.co/
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-UTMIFY_TOKEN=lzASZob4ldSJJc3jT1LILy9alPxWJgpnPhCh
+PINGUPAG_API_KEY=pingupag_sk_YOUR_KEY_HERE
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co/
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_KEY_HERE
+UTMIFY_TOKEN=YOUR_TOKEN_HERE
 ```
 
 **⚠️ NUNCA commit este arquivo!** Ele está no `.gitignore`.

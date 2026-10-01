@@ -23,10 +23,10 @@ Criei para você:
 
 ```
 Nome: PINGUPAG_API_KEY
-Valor: pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384
+Valor: YOUR_API_KEY_HERE
 ```
 
-**IMPORTANTE**: Use a chave **COMPLETA** com o prefixo `pingupag_sk_`
+**IMPORTANTE**: Configure esta variável no Netlify Dashboard
 
 5. Salve
 6. Faça redeploy manual: **Settings → Deploys → Deploy site**
@@ -155,7 +155,7 @@ const status = await fetch(
 
 ## ✅ CHECKLIST FINAL
 
-- [ ] STEP 1: PINGUPAG_API_KEY adicionada no Netlify (com prefixo `pingupag_sk_`)
+- [ ] STEP 1: PINGUPAG_API_KEY adicionada no Netlify
 - [ ] STEP 1: Redeploy realizado
 - [ ] STEP 2: Formulário testado em `pix-pingupag.html`
 - [ ] STEP 3: Webhook registrado no painel Pingupag
@@ -232,7 +232,7 @@ Para integrar no seu React/Vue/frontend:
 ## ❓ DÚVIDAS
 
 **P: Qual é a chave que devo usar?**  
-R: A chave **COMPLETA** com o prefixo: `pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384`
+R: Configure a chave completa no Netlify Dashboard em **Environment Variables**
 
 **P: Como uso em produção?**  
 R: A página `pix-pingupag.html` já está pronta. Ou integre os endpoints no seu app.

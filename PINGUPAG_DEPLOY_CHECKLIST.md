@@ -248,7 +248,7 @@ Quando webhook é disparado, você verá:
 # 2. Confirme que PINGUPAG_API_KEY é válida
 # 3. Teste a API manualmente:
 curl -X POST https://app.pingupag.com/gateway/v1/transaction \
-  -H "X-API-Key: pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384" \
+  -H "X-API-Key: YOUR_API_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{"amount": 1000, "description": "Test", "reference": "TEST-123", "source": "api_externa", "customer": {"name": "Test", "email": "test@example.com", "phone": "11999999999", "document": "12345678901"}}'
 ```
