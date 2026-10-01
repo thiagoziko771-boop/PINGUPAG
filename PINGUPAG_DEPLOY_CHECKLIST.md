@@ -2,7 +2,7 @@
 
 **Data**: Outubro 2026  
 **Status**: 🟢 PRONTO PARA DEPLOY  
-**API Key**: `pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384`
+**API Key**: Configurada nas variáveis de ambiente do Netlify (use `PINGUPAG_API_KEY`)
 
 ---
 

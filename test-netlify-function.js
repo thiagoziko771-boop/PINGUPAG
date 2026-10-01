@@ -4,7 +4,7 @@
  */
 
 // Simular o environment
-process.env.PINGUPAG_API_KEY = "pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384";
+process.env.PINGUPAG_API_KEY = process.env.PINGUPAG_API_KEY || "YOUR_API_KEY_HERE";
 
 // Mock do Supabase para evitar dependências
 const mockSupabase = {
