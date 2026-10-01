@@ -387,7 +387,12 @@
 
                 console.log('📤 Enviando para Pingupag:', payload);
 
-                const response = await fetch('/.netlify/functions/pix-pingupag', {
+                // Detectar se está em produção (Netlify) ou local
+                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://localhost:8888/.netlify/functions/pix-pingupag'
+                    : '/.netlify/functions/pix-pingupag';
+
+                const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -486,9 +491,12 @@
                 attempts++;
 
                 try {
-                    const response = await fetch(
-                        `/.netlify/functions/check-payment-pingupag?id=${transactionId}`
-                    );
+                    // Detectar se está em produção (Netlify) ou local
+                    const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                        ? `http://localhost:8888/.netlify/functions/check-payment-pingupag?id=${transactionId}`
+                        : `/.netlify/functions/check-payment-pingupag?id=${transactionId}`;
+
+                    const response = await fetch(apiUrl);
                     const result = await response.json();
 
                     console.log(`[${attempts}] Status:`, result.status);
