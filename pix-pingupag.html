@@ -340,9 +340,41 @@
 
         <div id="errorMsg" class="error-message hidden"></div>
         <div id="successMsg" class="success-message hidden"></div>
+
+        <!-- Debug Console -->
+        <div style="margin-top: 30px; padding: 15px; background: #f0f0f0; border-radius: 8px; display: none;" id="debugConsole">
+            <h3 style="margin-top: 0; color: #333;">🔧 Debug Console</h3>
+            <div id="debugLog" style="font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; background: white; padding: 10px; border-radius: 4px; color: #333;"></div>
+            <button onclick="document.getElementById('debugConsole').style.display='none'" style="margin-top: 10px; padding: 5px 10px; background: #999; color: white; border: none; border-radius: 4px; cursor: pointer;">Fechar</button>
+        </div>
     </div>
 
     <script>
+        // Debug Console Logger
+        const debugLogs = [];
+        function logDebug(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
+            const log = `[${timestamp}] ${prefix} ${message}`;
+            debugLogs.push(log);
+            
+            const debugLog = document.getElementById('debugLog');
+            if (debugLog) {
+                debugLog.innerHTML += log + '\n';
+                debugLog.scrollTop = debugLog.scrollHeight;
+            }
+            
+            console.log(log);
+        }
+
+        // Mostrar debug console com Ctrl+Shift+D
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                const debugConsole = document.getElementById('debugConsole');
+                debugConsole.style.display = debugConsole.style.display === 'none' ? 'block' : 'none';
+            }
+        });
+
         // Capturar UTMs da URL
         function getUTMParams() {
             const params = new URLSearchParams(window.location.search);
@@ -359,11 +391,18 @@
         document.getElementById('pixForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            logDebug('Formulário enviado', 'info');
+
             const nome = document.getElementById('nome').value;
             const email = document.getElementById('email').value;
             const phone = document.getElementById('phone').value.replace(/\D/g, '');
             const cpf = document.getElementById('cpf').value.replace(/\D/g, '') || null;
             const amount = parseFloat(document.getElementById('amount').value);
+
+            logDebug(`Nome: ${nome}`, 'info');
+            logDebug(`Email: ${email}`, 'info');
+            logDebug(`Phone: ${phone}`, 'info');
+            logDebug(`CPF: ${cpf || 'não informado'}`, 'info');
 
             const button = e.target.querySelector('button');
             const loading = e.target.querySelector('.loading');
@@ -385,30 +424,33 @@
                     utm: getUTMParams()
                 };
 
-                console.log('📤 Enviando para Pingupag:', payload);
+                logDebug('Payload preparado: ' + JSON.stringify(payload).substring(0, 100) + '...', 'info');
+                logDebug('Chamando /.netlify/functions/pix', 'info');
 
-                // Detectar se está em produção (Netlify) ou local
-                const apiUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                    ? 'http://localhost:8888/.netlify/functions/pix-pingupag'
-                    : '/.netlify/functions/pix-pingupag';
-
-                const response = await fetch(apiUrl, {
+                const response = await fetch('/.netlify/functions/pix', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
+                logDebug(`Status da resposta: ${response.status}`, 'info');
+
                 const result = await response.json();
 
-                console.log('📥 Resposta:', result);
+                logDebug(`Resposta recebida: ${JSON.stringify(result).substring(0, 100)}...`, 'info');
 
                 if (result.success) {
+                    logDebug('PIX gerado com sucesso!', 'success');
                     showSuccess(result);
                     monitorPayment(result.transaction_id);
                 } else {
+                    logDebug(`Erro: ${result.error}`, 'error');
+                    logDebug(`Debug: ${JSON.stringify(result.debug)}`, 'error');
                     showError(result.error || 'Erro ao gerar PIX');
                 }
             } catch (error) {
+                logDebug(`Erro de conexão: ${error.message}`, 'error');
+                logDebug(`Stack: ${error.stack}`, 'error');
                 console.error('❌ Erro:', error);
                 showError('Erro: ' + error.message);
             } finally {
@@ -447,10 +489,10 @@
 
         function showError(message) {
             const errorMsg = document.getElementById('errorMsg');
-            errorMsg.textContent = '❌ ' + message;
+            errorMsg.innerHTML = '❌ ' + message;
             errorMsg.classList.remove('hidden');
 
-            console.log('Erro:', message);
+            logDebug('Erro exibido ao usuário: ' + message, 'error');
         }
 
         function startCountdown() {
