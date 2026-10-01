@@ -1,8 +1,9 @@
 const { getSupabase } = require("./lib/supabase");
+const credentials = require("./credentials");
 
 const PINGUPAG_BASE = "https://app.pingupag.com/gateway/v1";
-const PINGUPAG_API_KEY = process.env.PINGUPAG_API_KEY || "pingupag_sk_5a4a884661598e034154315cc12ce8e55ebfd026625c057dcf673b7ca7512384";
-const UTMIFY_TOKEN = "lzASZob4ldSJJc3jT1LILy9alPxWJgpnPhCh";
+const PINGUPAG_API_KEY = process.env.PINGUPAG_API_KEY || credentials.PINGUPAG_API_KEY;
+const UTMIFY_TOKEN = process.env.UTMIFY_TOKEN || credentials.UTMIFY_TOKEN;
 
 // Cache UTMify para evitar duplicatas
 const utmifyCache = new Map();

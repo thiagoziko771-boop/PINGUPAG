@@ -1,6 +1,7 @@
 const { getSupabase } = require("./lib/supabase");
+const credentials = require("./credentials");
 
-const UTMIFY_TOKEN = "lzASZob4ldSJJc3jT1LILy9alPxWJgpnPhCh";
+const UTMIFY_TOKEN = process.env.UTMIFY_TOKEN || credentials.UTMIFY_TOKEN;
 
 /**
  * Mapeia status Pingupag para status interno
