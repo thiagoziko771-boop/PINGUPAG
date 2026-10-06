@@ -161,6 +161,7 @@ exports.handler = async (event) => {
     const email = body.email || "noemail@example.com";
     const phone = (body.phone || "11999999999").replace(/\D/g, "");
     const cpf = body.cpf ? body.cpf.replace(/\D/g, "") : generateValidCPF();
+<<<<<<< HEAD
     
     // Calcula o amount baseado na requisição
     // Se vier um valor entre 70-90, é upsell (R$ 81.50)
@@ -175,6 +176,10 @@ exports.handler = async (event) => {
     }
     
     const amount = Math.round(finalAmount * 100); // Converte para centavos
+=======
+    // SEMPRE R$ 65,70 (não aceita valor do usuário)
+    const amount = Math.round(65.70 * 100); // Converte para centavos = 6570
+>>>>>>> a23c8be009ab4df6445b9bc34f994da4621d0237
     const reference = `PEDIDO-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     // UTM parameters
