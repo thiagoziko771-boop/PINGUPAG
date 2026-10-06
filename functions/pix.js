@@ -159,8 +159,17 @@ exports.handler = async (event) => {
 
   const randId = Math.random().toString(36).slice(2,10);
   
-  // SEMPRE R$ 65,70 - VALOR FIXO, NÃO ACEITA OUTRO VALOR
-  const amountReais = 65.70;
+  // Calcula o amount baseado na requisição
+  // Se vier um valor entre 70-90, é upsell (R$ 81.50)
+  // Padrão é primeira taxa (R$ 65.70)
+  let amountReais = 65.70;
+  const rawAmount = body.amount ?? body.valor ?? body.total;
+  if (rawAmount) {
+    const n = Number(rawAmount);
+    if (n >= 70 && n < 90) {
+      amountReais = 81.50; // UPSELL
+    }
+  }
   const amountCents = Math.round(amountReais * 100);
 
   const customerName = (body.nome || body.name || body.customer_name || `Cliente ${randId}`).toString().trim();
